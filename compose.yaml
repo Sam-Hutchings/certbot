@@ -57,7 +57,7 @@ services:
       - --dns-cloudflare-credentials=/run/secrets/dns_cloudflare_api_token
       - --preferred-challenges=dns-01
       - --dns-cloudflare-propagation-seconds=5
-      - --domains=domainname.com,sub.domainname.com
+      - --domains=domain.com,sub.domain.com
 secrets:
   dns_cloudflare_api_token:
     file: ./cloudflare_credentials.ini
