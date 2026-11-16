@@ -1,0 +1,65 @@
+name: certbot
+services:
+  certbot:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM arm64v8/debian:13.7-slim
+        RUN apt-get update && apt-get install -y \
+        certbot \
+        python3-acme \
+        python3-bs4  \
+        python3-certbot \
+        python3-certbot-dns-cloudflare \
+        python3-cloudflare \
+        python3-configargparse \
+        python3-cssselect \
+        python3-html5lib \
+        python3-icu \
+        python3-josepy \
+        python3-lxml \
+        python3-parsedatetime \
+        python3-rfc3339 \
+        python3-soupsieve \
+        python3-webencodings
+    pull_policy: missing
+    container_name: certbothome
+    deploy:
+        resources:
+            limits:
+              cpus: '0.50'
+              memory: 250M
+            reservations:
+              cpus: '0.25'
+              memory: 100M
+    shm_size: 128mb
+    restart: no 
+    networks:
+      - host
+    volumes:
+      - type: bind
+        source: ./certs/live
+        target: /etc/letsencrypt/live
+      - type: bind
+        source: ./certs/archive
+        target: /etc/letsencrypt/archive
+    environment:
+      TZ: "Europe/London"
+      dns_cloudflare_api_token: /run/secrets/dns_cloudflare_api_token
+    secrets:
+      - dns_cloudflare_api_token
+    command:
+      - certbot 
+      - certonly
+      - --non-interactive
+      - --agree-tos
+      - --dns-cloudflare
+      - --dns-cloudflare-credentials=/run/secrets/dns_cloudflare_api_token
+      - --preferred-challenges=dns-01
+      - --dns-cloudflare-propagation-seconds=5
+      - --domains=domainname.com,sub.domainname.com
+secrets:
+  dns_cloudflare_api_token:
+    file: ./cloudflare_credentials.ini
+networks:
+    host: {}
